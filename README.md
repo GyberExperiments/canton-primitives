@@ -5,7 +5,7 @@ The missing execution layer for institutional digital asset trading.
 
 **From OTC to AMM. From Oracle to Settlement. Production-ready. Open-source.**
 
-Licensed under **Apache 2.0**.
+Licensed under **GPL v3**.
 
 ---
 
@@ -80,8 +80,9 @@ daml test
 
 ## License
 
-Apache 2.0 — see [LICENSE](./LICENSE).
+GPL v3 — see [LICENSE](./LICENSE).
 
 ---
 
 Built by [Gybernaty](https://github.com/TheMacroeconomicDao) for Canton Network.
+
