@@ -1,4 +1,4 @@
-# Canton Primitives — OTC Smart Contracts
+# DeFi Infrastructure for Canton Network
 
 Open-source DAML smart contracts for OTC trading on Canton Network.
 
