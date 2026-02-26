@@ -82,7 +82,6 @@ daml test
 ## Related
 
 - [Canton DeFi Infrastructure](https://github.com/TheMacroeconomicDao/canton-defi-infrastructure) — Full platform: Rust SDK, REST/gRPC APIs, Next.js frontend
-- [CyberSocium Foundation](https://themacroeconomicdao.github.io/GYBER_EXPERIMENT_DOCS/) — Theoretical foundations
 
 ---
 
