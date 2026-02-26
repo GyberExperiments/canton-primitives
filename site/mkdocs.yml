@@ -1,0 +1,110 @@
+site_name: Canton DeFi Primitives
+site_url: https://gyberexperiments.github.io/canton-primitives/
+site_description: Open-source DeFi primitives built natively on Canton Network
+site_author: Gybernaty
+site_dir: _build
+
+repo_name: GyberExperiments/canton-primitives
+repo_url: https://github.com/GyberExperiments/canton-primitives
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: deep purple
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tabs
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+  custom_dir: docs/overrides
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/GyberExperiments/canton-primitives
+    - icon: fontawesome/brands/github
+      link: https://github.com/TheMacroeconomicDao
+  generator: false
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Overview: getting-started.md
+    - Quick Start: quick-start.md
+  - DeFi Primitives:
+    - primitives/otc-types.md
+    - primitives/otc-offer.md
+    - primitives/escrow.md
+    - primitives/collateral.md
+    - primitives/settlement.md
+    - primitives/testing.md
+  - Architecture:
+    - architecture/canton-network.md
+    - architecture/omnichain.md
+    - architecture/ledger-api.md
+  - Rust SDK:
+    - sdk/overview.md
+    - sdk/architecture.md
+    - sdk/devnet.md
+    - sdk/prerequisites.md
+  - Grant:
+    - grant/application.md
+    - grant/roadmap.md
+  - CIP Compliance: cip-compliance.md
+  - Contributing: contributing.md

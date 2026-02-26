@@ -1,0 +1,93 @@
+/* Canton DeFi Primitives — Custom Theme */
+
+:root {
+  --md-primary-fg-color: #7c4dff;
+  --md-primary-fg-color--light: #b47cff;
+  --md-primary-fg-color--dark: #651fff;
+  --md-accent-fg-color: #00e5ff;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #0d1117;
+  --md-default-fg-color--light: #8b949e;
+  --md-code-bg-color: #161b22;
+  --md-typeset-a-color: #00e5ff;
+}
+
+/* Hero banner gradient */
+.md-typeset h1 {
+  background: linear-gradient(135deg, #7c4dff, #00e5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+/* Code blocks */
+.md-typeset code {
+  border-radius: 6px;
+}
+
+.md-typeset pre > code {
+  border-radius: 8px;
+}
+
+/* Admonition styling */
+.md-typeset .admonition {
+  border-radius: 8px;
+  border-left-width: 4px;
+}
+
+/* Tables */
+.md-typeset table:not([class]) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: rgba(124, 77, 255, 0.15);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background-color: rgba(124, 77, 255, 0.2);
+}
+
+/* Navigation */
+.md-tabs {
+  background-color: rgba(13, 17, 23, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+/* Footer */
+.md-footer {
+  background-color: #0d1117;
+}
+
+/* Status badges */
+.md-typeset .status-production {
+  background: #238636;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.md-typeset .status-planned {
+  background: #7c4dff;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better content width */
+.md-grid {
+  max-width: 1400px;
+}
