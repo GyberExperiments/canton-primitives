@@ -50,7 +50,7 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/GyberExperiments/canton-primitives
     - icon: fontawesome/brands/github
-      link: https://github.com/TheMacroeconomicDao
+      link: https://github.com/GyberExperiments
   generator: false
 
 markdown_extensions:
@@ -98,13 +98,5 @@ nav:
     - architecture/canton-network.md
     - architecture/omnichain.md
     - architecture/ledger-api.md
-  - Rust SDK:
-    - sdk/overview.md
-    - sdk/architecture.md
-    - sdk/devnet.md
-    - sdk/prerequisites.md
-  - Grant:
-    - grant/application.md
-    - grant/roadmap.md
   - CIP Compliance: cip-compliance.md
   - Contributing: contributing.md

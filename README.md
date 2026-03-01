@@ -188,15 +188,9 @@ canton-primitives/
 │       ├── Collateral.daml         # Collateral management (7 choices)
 │       ├── Settlement.daml         # Settlement process (8 choices)
 │       └── Test.daml               # 6 lifecycle test scenarios
-├── docs/                           # Research & technical documentation
-│   ├── architecture/               # Canton network, omnichain, Ledger API
-│   ├── sdk/                        # Rust SDK design & prerequisites
-│   ├── grant/                      # Grant application materials
-│   ├── reports/                    # Stack analysis
-│   └── roadmap/                    # Implementation roadmap
 └── site/                           # MkDocs documentation site
     ├── mkdocs.yml
-    └── docs/                       # 20+ pages: primitives, architecture, SDK, CIP
+    └── docs/                       # Primitives, architecture, CIP compliance
 ```
 
 ---
@@ -233,7 +227,7 @@ pip install mkdocs-material
 mkdocs serve
 ```
 
-Or browse the `site/docs/` and `docs/` directories directly.
+Or browse the `site/docs/` directory directly.
 
 ---
 
