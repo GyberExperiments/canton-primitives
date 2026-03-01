@@ -1,67 +1,160 @@
-# DeFi Infrastructure for Canton Network
+# Canton DeFi Primitives
 
-Open-source DeFi primitives built natively on Canton Network.
-The missing execution layer for institutional digital asset trading.
+Open-source DAML smart contract library for institutional DeFi on [Canton Network](https://www.canton.network/).
 
-**From OTC to AMM. From Oracle to Settlement. Production-ready. Open-source.**
+Production-ready building blocks for OTC trading, escrow, collateral management, and multi-confirmation settlement — with sub-transaction privacy, mathematical invariant proofs, and full lifecycle testing.
 
-Licensed under **GPL v3**.
+```
+1,672 LOC  ·  5 contracts  ·  28 choices  ·  50+ invariant assertions  ·  6 test scenarios
+```
 
 ---
 
-## What Is This
+## Why Canton Primitives
 
-Reusable DAML smart contracts (primitives) that any Canton dApp can integrate. This repository contains the core contract layer — OTC trading, escrow, collateral management, and settlement.
+Canton Network provides sub-transaction privacy and multi-party authorization — but there are no reusable DeFi building blocks. This library fills that gap.
 
-## OTC Contracts
+**The problem:** Every Canton dApp rebuilds OTC, escrow, and settlement from scratch.
 
-| Contract | Description | LOC |
-|----------|-------------|-----|
-| `OtcTypes.daml` | Core data types — Asset, Price, OtcStatus, CollateralInfo | 106 |
-| `OtcOffer.daml` | OTC trading template — create/accept/cancel/settle offers with partial fills | 278 |
-| `Escrow.daml` | Three-party escrow — deposit/release/refund/arbitrate with 10 choices | 358 |
-| `Collateral.daml` | Collateral management — lock/release/forfeit with invariant proof | 309 |
-| `Settlement.daml` | Settlement process — multi-confirmation tracking with dispute resolution | 308 |
-| `Test.daml` | Test scenarios — lifecycle, partial fill, cancellation, expiry | 313 |
+**The solution:** Audited, tested, composable primitives that any Canton application can import and use.
 
-## Planned Primitives
+Key design principles:
 
-- **Matching Engine** — on-chain order book with price-time priority
-- **Liquidity Pools** — constant-product AMM (x*y=k) for DAML
-- **Price Oracle** — multi-source feeds with median aggregation
-- **Atomic Swaps** — two-phase cross-asset swaps with timeout
-- **Multi-Party Settlement** — batch netting across N parties
-- **Compliance Gateway** — pluggable per-jurisdiction checks
+- **Invariant-first** — every state transition is guarded by mathematical assertions (e.g., collateral conservation law: `currentAmount + lockedAmount == initialAmount`)
+- **Multi-party authorization** — all sensitive operations require explicit consent from relevant parties
+- **Documented bug fixes** — 6 critical fixes (P0-10 through P0-20) are inline-documented so auditors can trace the reasoning
+- **Self-trade prevention** — built-in protection against wash trading
 
-## Structure
+---
+
+## Contracts
+
+### OtcTypes — Core Data Types
+`daml/OTC/OtcTypes.daml` · 106 LOC
+
+Shared types used across all contracts:
+
+| Type | Description |
+|------|-------------|
+| `Asset` | Symbol, amount, chain, optional contract address |
+| `Price` | Rate + currency |
+| `OtcStatus` | Pending → Active → PartiallyFilled → Filled / Cancelled / Expired / Disputed |
+| `CollateralInfo` | ID, asset, lock time, status |
+| `SettlementInfo` | Settlement ID, payment proof (SHA-256), confirmations |
+| `VolumeLimits` | Min/max order size constraints |
+| `AcceptResult` | Trade ID, quantity, price, settlement time, slippage (basis points) |
+
+Built-in validation: `ensureAsset`, `ensurePrice`, `ensureVolumeLimits`.
+
+---
+
+### OtcOffer — OTC Trading
+`daml/OTC/OtcOffer.daml` · 278 LOC · 6 choices
+
+Full and partial fill OTC trading with compliance controls.
 
 ```
-daml/
-├── daml.yaml          # DAML project config (SDK 2.9.3)
-└── OTC/
-    ├── OtcTypes.daml
-    ├── OtcOffer.daml
-    ├── Escrow.daml
-    ├── Collateral.daml
-    ├── Settlement.daml
-    └── Test.daml
+                          ┌──────────┐
+                          │ Pending  │
+                          └────┬─────┘
+                               │ Activate
+                          ┌────▼─────┐
+                     ┌────│  Active  │────┐
+                     │    └────┬─────┘    │
+                Accept│        │ Cancel   │Expire
+                     │    ┌────▼─────┐    │
+                     │    │Cancelled │    │
+                ┌────▼────┴──────────┴────▼───┐
+                │  Filled / PartiallyFilled   │
+                └─────────────────────────────┘
 ```
 
-## Tech Stack
+**Choices:** Activate · Accept (partial fills, slippage calc) · Cancel · Expire · Settle · Dispute
 
-| Layer | Technology |
-|-------|-----------|
-| Smart Contracts | DAML 2.9.3 |
-| Network | Canton Network (sub-transaction privacy) |
+**Key features:**
+- Partial fills with automatic remainder contract creation and recalculated volume limits
+- Designated counterparty or open offers
+- Compliance fields: `minComplianceLevel`, `allowedJurisdictions`, `auditors`
+- Self-trade prevention (initiator ≠ counterparty)
+- Expiry time validation
 
-## CIP Compliance
+---
 
-- **CIP-0056** Token Standard — all primitives accept CIP-0056 tokens
-- **CIP-0047** Activity Markers — trade events for Featured App tracking
-- **CIP-0082** Governance — open-source, Foundation can fork/maintain
-- **CIP-0103** Wallet Standard — integrates with compliant wallets
+### Escrow — Three-Party Escrow with Arbitration
+`daml/OTC/Escrow.daml` · 358 LOC · 10 choices
 
-## Build
+Buyer, seller, and neutral arbiter. Supports partial release, dispute resolution, and auto-expiry.
+
+```
+  Created ──Deposit──▶ Deposited ──Release──▶ Released
+     │                    │
+     │               Dispute│
+     │                    ▼
+     │                Disputed ──Arbitrate──▶ Arbitrated
+     │                                           │
+     └──AutoExpire──▶ (archived)      ExecuteArbitration
+                                                 │
+                                          ▼ (routed by decision)
+```
+
+**Choices:** Deposit · Release · PartialRelease · Refund · Dispute · Arbitrate · ExecuteArbitration · CancelEscrow · ExtendDeadline (max 3) · AutoExpire
+
+---
+
+### Collateral — Collateral Management with Conservation Law
+`daml/OTC/Collateral.daml` · 309 LOC · 7 choices
+
+The core invariant is checked on **every** state transition:
+
+```
+currentAmount + lockedAmount == initialAmount
+```
+
+Collateral cannot be created or destroyed — only transferred between states or explicitly withdrawn/forfeited.
+
+```
+  Available ──Lock──▶ Locked ──Release──▶ Available
+                        │
+                    Forfeit│
+                        ▼
+                  ForfeitedCollateral (new record for beneficiary)
+```
+
+**Choices:** Lock (0–365 days) · Release · Forfeit · Withdraw · TopUp · AutoRelease · (creates `ForfeitedCollateral` template on forfeit)
+
+---
+
+### Settlement — Multi-Confirmation Settlement
+`daml/OTC/Settlement.daml` · 308 LOC · 8 choices
+
+Payment confirmation flow with blockchain confirmation tracking.
+
+```
+  PendingPayment ──ConfirmPayment──▶ PaymentReceived ──AddConfirmation──▶ Confirming
+                                                                             │
+                                                              (threshold met)│
+                                                                             ▼
+                                                                        Completed
+```
+
+**Choices:** ConfirmPayment · AddConfirmation · CompleteSettlement · DisputeSettlement · ResolveDispute · FailSettlement · ExtendDeadline (max 3) · TimeoutSettlement
+
+**Validation:** `totalAmount == quantity * price.rate`, payment proof ≥ 32 chars (SHA-256), confirmation counter bounded by required threshold.
+
+---
+
+## Testing
+
+`daml/OTC/Test.daml` · 313 LOC · 6 scenarios
+
+| Test | What it covers |
+|------|---------------|
+| `testOfferLifecycle` | Create → Activate → Accept (full fill) → verify result |
+| `testPartialFill` | Accept 3 of 10 ETH → verify remainder contract with 7 ETH |
+| `testCancelOffer` | Create → Cancel → verify archived |
+| `testCollateralLifecycle` | Create → Lock 2000 → Release → verify conservation invariant |
+| `testSelfTradePrevention` | Alice tries to accept own offer → must fail |
+| `testOfferExpiry` | Create with expiry → Expire after deadline → verify archived |
 
 ```bash
 cd daml
@@ -69,7 +162,82 @@ daml build
 daml test
 ```
 
-## Related Repositories
+Expected output:
+```
+Test Summary
+  OTC/Test:testOfferLifecycle: ok
+  OTC/Test:testPartialFill: ok
+  OTC/Test:testCancelOffer: ok
+  OTC/Test:testCollateralLifecycle: ok
+  OTC/Test:testSelfTradePrevention: ok
+  OTC/Test:testOfferExpiry: ok
+```
+
+---
+
+## Project Structure
+
+```
+canton-primitives/
+├── daml/
+│   ├── daml.yaml                   # DAML SDK 2.9.3
+│   └── OTC/
+│       ├── OtcTypes.daml           # Shared data types & validation
+│       ├── OtcOffer.daml           # OTC trading (6 choices)
+│       ├── Escrow.daml             # 3-party escrow (10 choices)
+│       ├── Collateral.daml         # Collateral management (7 choices)
+│       ├── Settlement.daml         # Settlement process (8 choices)
+│       └── Test.daml               # 6 lifecycle test scenarios
+├── docs/                           # Research & technical documentation
+│   ├── architecture/               # Canton network, omnichain, Ledger API
+│   ├── sdk/                        # Rust SDK design & prerequisites
+│   ├── grant/                      # Grant application materials
+│   ├── reports/                    # Stack analysis
+│   └── roadmap/                    # Implementation roadmap
+└── site/                           # MkDocs documentation site
+    ├── mkdocs.yml
+    └── docs/                       # 20+ pages: primitives, architecture, SDK, CIP
+```
+
+---
+
+## CIP Compliance
+
+| CIP | Standard | How |
+|-----|----------|-----|
+| CIP-0056 | Token Standard | All primitives accept CIP-0056 tokens |
+| CIP-0047 | Activity Markers | Trade events for Featured App tracking |
+| CIP-0082 | Governance | GPL v3 — Foundation can fork/maintain |
+| CIP-0103 | Wallet Standard | Integrates with compliant wallets |
+
+---
+
+## Planned Primitives
+
+- **Matching Engine** — on-chain order book with price-time priority
+- **Liquidity Pools** — constant-product AMM (x·y=k) for DAML
+- **Price Oracle** — multi-source feeds with median aggregation
+- **Atomic Swaps** — two-phase cross-asset swaps with timeout
+- **Multi-Party Settlement** — batch netting across N parties
+- **Compliance Gateway** — pluggable per-jurisdiction checks
+
+---
+
+## Documentation
+
+Full documentation is available via MkDocs:
+
+```bash
+cd site
+pip install mkdocs-material
+mkdocs serve
+```
+
+Or browse the `site/docs/` and `docs/` directories directly.
+
+---
+
+## Related
 
 - [canton-defi-infrastructure](https://github.com/TheMacroeconomicDao/canton-defi-infrastructure) — Full platform: Rust SDK, REST/gRPC APIs, Next.js frontend
 
@@ -85,4 +253,3 @@ GPL v3 — see [LICENSE](./LICENSE).
 ---
 
 Built by [Gybernaty](https://github.com/TheMacroeconomicDao) for Canton Network.
-
