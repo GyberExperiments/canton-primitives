@@ -252,4 +252,4 @@ GPL v3 — see [LICENSE](./LICENSE).
 
 ---
 
-Built by [Gybernaty](https://github.com/TheMacroeconomicDao) for Canton Network.
+Built by [Gybernaty](https://github.com/GyberExperiments) for Canton Network.
